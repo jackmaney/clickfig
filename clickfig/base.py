@@ -1,3 +1,5 @@
+import dpath
+
 __config_types__ = [
     "ini",
     "json"
