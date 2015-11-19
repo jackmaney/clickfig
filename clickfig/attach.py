@@ -1,5 +1,4 @@
 import click
-from .base import dict_dfs
 
 
 def attach(group, config_file, command_name="config"):
@@ -19,11 +18,7 @@ def attach(group, config_file, command_name="config"):
     @click.argument("key", required=False)
     @click.argument("value", required=False)
     def config_cmd(key, value):
-        if key is None and value is None:
-            for k, v in dict_dfs(config_file.read()).items():
-                print("{}={}".format(k, v))
-        elif key is not None and value is None:
-            output = config_file.read(key)
-            print(output or "")
-        elif key is not None and value is not None:
+        if value is None:
+            print(config_file.read(key=key))
+        else:
             config_file.write(key, value)

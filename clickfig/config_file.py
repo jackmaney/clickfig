@@ -5,26 +5,55 @@ import click
 import dpath.util
 import six.moves as sm
 
-from .base import __config_types__
+from .base import __config_types__, return_key_value, flatten_dict
 
 
-def _return_key_value(data, key=None):
-    if data is None:
-        return None
+class ConfigReadResult(object):
+    """
+    This is a wrapper object around data returned by a ``ConfigFile.read`` call
+    to handle the formatting of printed results. The data is stored in the ``data``
+    attribute.
+    """
 
-    if key is None:
-        return data
-    else:
-        try:
-            return dpath.util.get(data, key, separator=".")
-        except (KeyError, ValueError):
-            return None
+    def __init__(self, data, key=None, separator="."):
+        """
+        Stores the data and keeps track of the separator for putting keys together (sections, subsections, etc).
+        :param any data: The raw data passed in.
+        :param str|None key: The key used to produce this data, if applicable.
+        :param separator: The separator used to put parts of keys together.
+        """
+        self.data = data
+        self.key = key
+        self.separator = separator
+
+    def __str__(self):
+        """
+        If the ``data`` attribute is a dictionary, then the paths are given along with their
+        corresponding (non-dict) value, in the form "path=key". If ``data`` isn't a dict,
+        then this just returns the string representation of the ``data``.
+        """
+
+        if isinstance(self.data, dict):
+
+            if self.key is None:
+
+                result = "\n".join(["{}={}".format(k, v)
+                                    for k, v in flatten_dict(self.data, self.separator).items()])
+            else:
+
+                result = "\n".join(["{}{}{}={}".format(self.key, self.separator, k, v)
+                                    for k, v in flatten_dict(self.data, self.separator).items()])
+
+        else:
+            result = str(self.data)
+
+        return result
 
 
 class ConfigFile(object):
     def __init__(self, config_file, config_type="ini",
                  config_dir=None, app_name=None, default_file=None,
-                 dir_options=None, verbose=False):
+                 dir_options=None, separator=".", verbose=True):
 
         if config_type not in __config_types__:
             raise ValueError("Invalid config_type: {} (must be one of {})".format(
@@ -36,6 +65,7 @@ class ConfigFile(object):
         self.config_type = config_type
         self.app_name = app_name
         self.default_file = default_file
+        self.separator = separator
         self.verbose = verbose
 
         if config_file != os.path.basename(config_file) and config_dir is None:
@@ -55,17 +85,27 @@ class ConfigFile(object):
 
         self.config_file = os.path.join(config_dir, config_file)
 
+        if not self.exists():
+            if not os.path.exists(self.default_file):
+                raise FileNotFoundError(
+                    "Configuration file {} not found, and no default config file specified.".format(
+                        self.config_file
+                    ))
+            else:
+                self.write_from_default()
+
     def exists(self):
 
-        return os.path.join(self.config_file)
+        return os.path.exists(self.config_file)
 
-    def read(self, key=None):
+    def read(self, key=None, flatten=True):
 
         method_name = "_read_{}".format(self.config_type)
 
-        return getattr(self, method_name)(key=key)
+        return ConfigReadResult(getattr(self, method_name)(key=key, flatten=flatten),
+                                key=key, separator=self.separator)
 
-    def _read_ini(self, key=None):
+    def _read_ini(self, key=None, flatten=True):
 
         if not self.exists():
             return None
@@ -74,9 +114,14 @@ class ConfigFile(object):
         cfg.read(self.config_file)
         data = {section: dict(cfg[section]) for section in cfg.sections()} or None
 
-        return _return_key_value(data, key=key)
+        result = return_key_value(data, key=key)
 
-    def _read_json(self, key=None):
+        if flatten and isinstance(result, dict):
+            result = flatten_dict(result, self.separator)
+
+        return result
+
+    def _read_json(self, key=None, flatten=True):
 
         if not self.exists():
             return None
@@ -84,7 +129,12 @@ class ConfigFile(object):
         with open(self.config_file) as f:
             data = json.loads(f.read())
 
-        return _return_key_value(data, key=key)
+        result = return_key_value(data, key=key)
+
+        if flatten and isinstance(result, dict):
+            result = flatten_dict(result, self.separator)
+
+        return result
 
     def write(self, key, value):
 
@@ -94,8 +144,11 @@ class ConfigFile(object):
 
     def _write_ini(self, key, value):
 
-        if len(key.split(".")) != 2:
-            raise ValueError("For .ini files, keys must be of the form section.option")
+        if not key or len(key.split(self.separator)) > 2:
+            raise ValueError(
+                "For .ini files, keys must be a top-level section or of the form section{}option".format(
+                    self.separator
+                ))
 
         section, option = key.split(".")
 
@@ -117,7 +170,7 @@ class ConfigFile(object):
         data = {}
 
         if os.path.exists(self.config_file):
-            data = self._read_json()
+            data = self.read(flatten=False).data
 
         dpath.util.new(data, key, value, separator=".")
 

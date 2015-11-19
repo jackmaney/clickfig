@@ -1,8 +1,12 @@
 {
-  "foo": "baz",
-  "bar": {
-    "blah": "blarg",
-    "meh": {"a": 1, "b": 2, "c": 3}
-  },
-  "q": null
+    "bar": {
+        "meh": {
+            "a": 1,
+            "b": 2,
+            "c": 3
+        },
+        "blah": "blarg"
+    },
+    "foo": "baz",
+    "q": null
 }
