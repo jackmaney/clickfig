@@ -3,7 +3,6 @@ import sys
 sys.path = ['..'] + sys.path
 
 import unittest
-import dpath.util
 from clickfig.base import flatten_dict, unflatten_dict
 
 dict_flat = {
@@ -31,27 +30,38 @@ dict_unflat = {
 }
 
 
+def dict_equal(first, second):
+    if not set(first.keys()) == set(second.keys()):
+        return False
+
+    for k1, v1 in first.items():
+        if isinstance(v1, dict) and isinstance(second[k1], dict):
+            if not dict_equal(v1, second[k1]):
+                return False
+        elif not isinstance(v1, dict) and not isinstance(second[k1], dict):
+            if v1 != second[k1]:
+                return False
+        else:
+            return False
+
+    return True
+
+
 class TestDictFlattenUnflatten(unittest.TestCase):
+    def test_equal(self):
+        d1 = {"a": 2, "b": {"c": 3}}
+        d2 = {"a": 2, "b": 3}
+        d3 = {"a": 2, "c": 8}
+        d4 = {"b": {"c": 4}, "a": 2}
+        d5 = {"b": {"c": 3}, "a": 2}
+
+        self.assertFalse(dict_equal(d1, d2))
+        self.assertFalse(dict_equal(d1, d3))
+        self.assertFalse(dict_equal(d1, d4))
+        self.assertTrue(dict_equal(d1, d5))
+
     def test_flatten(self):
-        flattened = flatten_dict(dict_unflat)
-        self.assertFalse(any([isinstance(v, dict) for k, v in flattened.items()]))
-        self.assertEqual(sorted([flattened.items()]), sorted([dict_flat.items()]))
+        self.assertTrue(dict_equal(flatten_dict(dict_unflat), dict_flat))
 
     def test_unflatten(self):
-        unflattened = unflatten_dict(dict_flat)
-
-        self.assertEqual(set(unflattened.keys()), {"a", "one", "two", "list"})
-
-        self.assertTrue(all([unflattened[k] == dict_unflat[k]
-                             for k in ["a", "one", "two", "list"]]))
-
-        self.assertEqual([x for x in unflattened["a"].keys()], ["b"])
-        self.assertEqual(set(dpath.util.get(unflattened, "a/b").keys()), {"c", "d", "z", "e"})
-        self.assertEqual(
-            set(dpath.util.get(unflattened, "a/b/e").items()),
-            set(dpath.util.get(dict_unflat, "a/b/e").items())
-        )
-        self.assertEqual(
-            set(dpath.util.search(unflattened, "a/b/[cdz]")),
-            set(dpath.util.search(dict_unflat, "a/b/[cdz]"))
-        )
+        self.assertTrue(dict_equal(unflatten_dict(dict_flat), dict_unflat))
