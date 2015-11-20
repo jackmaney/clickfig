@@ -40,6 +40,6 @@ def unflatten_dict(dictionary, separator="."):
     result = {}
 
     for key, value in dictionary.items():
-        dpath.util.new(result, key, value)
+        dpath.util.new(result, key, value, separator=separator)
 
     return result
