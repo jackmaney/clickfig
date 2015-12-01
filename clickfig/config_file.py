@@ -1,5 +1,6 @@
 import json
 import os
+from collections import OrderedDict
 
 import dpath.util
 import six.moves as sm
@@ -98,7 +99,13 @@ class ConfigFile(object):
 
         cfg = sm.configparser.ConfigParser()
         cfg.read(self.name)
-        data = {section: dict(cfg[section]) for section in cfg.sections()} or None
+        data = OrderedDict(
+            [(section,
+              OrderedDict([(k, v) for k, v in cfg[section].items()])
+              )
+             for section in cfg.sections()
+             ]
+        ) or None
 
         result = return_key_value(data, key=key)
 
@@ -113,7 +120,7 @@ class ConfigFile(object):
             return None
 
         with open(self.name) as f:
-            data = json.loads(f.read())
+            data = json.loads(f.read(), object_pairs_hook=OrderedDict)
 
         result = return_key_value(data, key=key)
 
