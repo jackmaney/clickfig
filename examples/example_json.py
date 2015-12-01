@@ -4,7 +4,7 @@ sys.path = ['..'] + sys.path
 
 import clickfig
 
-file = clickfig.ConfigFile("./test.json", config_type="json")
+file = clickfig.ConfigFile("./test.json", type_="json")
 
 
 @click.group()

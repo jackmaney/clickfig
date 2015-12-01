@@ -6,7 +6,7 @@ import unittest
 import clickfig
 from dict_equal import dict_equal
 
-cfg = clickfig.ConfigFile("./ini/test.ini")
+cfg = clickfig.Config("./ini/test.ini")
 
 
 class TestIniReadWrite(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestIniReadWrite(unittest.TestCase):
             "section.other": "something else blah blah blah"
         }
 
-        self.assertTrue(dict_equal(cfg.read().data, expected))
+        self.assertTrue(dict_equal(cfg.read()[0].data, expected))
 
     def test_read_key(self):
         self.assertTrue(cfg.read(key="foo.bar"), "baz")

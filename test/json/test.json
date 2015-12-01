@@ -2,11 +2,11 @@
     "foo": "baz",
     "q": null,
     "bar": {
+        "blah": "blarg",
         "meh": {
-            "b": 2,
             "c": 3,
+            "b": 2,
             "a": 1
-        },
-        "blah": "blarg"
+        }
     }
 }

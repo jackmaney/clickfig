@@ -6,7 +6,7 @@ import unittest
 import clickfig
 from dict_equal import dict_equal
 
-cfg = clickfig.ConfigFile("./json/test.json", config_type="json")
+cfg = clickfig.ConfigFile("./json/test.json", type_="json")
 
 
 class TestJSONReadWrite(unittest.TestCase):
@@ -28,7 +28,6 @@ class TestJSONReadWrite(unittest.TestCase):
 
         self.assertTrue(dict_equal(cfg.read(key="bar.meh").data,
                                    {"a": 1, "b": 2, "c": 3}))
-
         self.assertTrue(cfg.read(key="q").data is None)
 
     def test_write(self):

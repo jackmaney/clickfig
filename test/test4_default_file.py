@@ -11,11 +11,8 @@ from dict_equal import dict_equal
 class TestDefaultFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cfg_ini = clickfig.ConfigFile("./default_test.ini", default_file="./ini/default.ini",
-                                          verbose=False)
-        cls.cfg_json = clickfig.ConfigFile("./default_test.json",
-                                           config_type="json", default_file="./json/default.json",
-                                           verbose=False)
+        cls.cfg_ini = clickfig.ConfigFile("./default_test.ini", default_file="./ini/default.ini", verbose=False)
+        cls.cfg_json = clickfig.ConfigFile("./default_test.json", type_="json", default_file="./json/default.json", verbose=False)
 
     def test_ini(self):
         expected = {
@@ -47,5 +44,5 @@ class TestDefaultFile(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        os.unlink(cls.cfg_ini.config_file)
-        os.unlink(cls.cfg_json.config_file)
+        os.unlink(cls.cfg_ini.name)
+        os.unlink(cls.cfg_json.name)

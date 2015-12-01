@@ -1,7 +1,6 @@
 import json
 import os
 
-import click
 import dpath.util
 import six.moves as sm
 
@@ -51,56 +50,43 @@ class ConfigReadResult(object):
 
 
 class ConfigFile(object):
-    def __init__(self, config_file, config_type="ini",
-                 config_dir=None, app_name=None, default_file=None,
-                 dir_options=None, separator=".", verbose=True):
+    def __init__(self, name, type_=None, default_file=None, separator=".", verbose=True):
 
-        if config_type not in __config_types__:
-            raise ValueError("Invalid config_type: {} (must be one of {})".format(
-                config_type, ",".join(__config_types__)
+        if type_ is None:
+            extension = name.split(".")[-1].lower()
+            if extension in __config_types__:
+                type_ = extension
+            else:
+                raise ValueError("Unable to determine the type of configuration file for {}. "
+                                 "Please use the type_ parameter.".format(name))
+
+        if type_ not in __config_types__:
+            raise ValueError("Invalid configuration type: {} (must be one of {})".format(
+                type_, ",".join(__config_types__)
             ))
 
-        dir_options = dir_options or {}
-
-        self.config_type = config_type
-        self.app_name = app_name
+        self.name = name
+        self.type_ = type_
         self.default_file = default_file
         self.separator = separator
         self.verbose = verbose
-
-        if config_file != os.path.basename(config_file) and config_dir is None:
-            config_file = os.path.abspath(os.path.expanduser(config_file))
-            self.config_dir, self.config_file = \
-                (os.path.dirname(config_file), os.path.basename(config_file))
-
-        if self.config_dir is None and self.app_name is None:
-            raise ValueError(
-                "One of 'config_dir' or 'app_name' must be set for a config_file of {}".format(
-                    self.config_file
-                ))
-
-        self.config_dir = self.config_dir or \
-                          click.get_app_dir(app_name, roaming=dir_options.get("roaming", True),
-                                            force_posix=dir_options.get("force_posix", False))
-
-        self.config_file = os.path.join(config_dir, config_file)
 
         if not self.exists():
             if not os.path.exists(self.default_file):
                 raise FileNotFoundError(
                     "Configuration file {} not found, and no default config file specified.".format(
-                        self.config_file
+                        self
                     ))
             else:
                 self.write_from_default()
 
     def exists(self):
 
-        return os.path.exists(self.config_file)
+        return os.path.exists(self.name)
 
     def read(self, key=None, flatten=True):
 
-        method_name = "_read_{}".format(self.config_type)
+        method_name = "_read_{}".format(self.type_)
 
         return ConfigReadResult(getattr(self, method_name)(key=key, flatten=flatten),
                                 key=key, separator=self.separator)
@@ -111,7 +97,7 @@ class ConfigFile(object):
             return None
 
         cfg = sm.configparser.ConfigParser()
-        cfg.read(self.config_file)
+        cfg.read(self.name)
         data = {section: dict(cfg[section]) for section in cfg.sections()} or None
 
         result = return_key_value(data, key=key)
@@ -126,7 +112,7 @@ class ConfigFile(object):
         if not self.exists():
             return None
 
-        with open(self.config_file) as f:
+        with open(self.name) as f:
             data = json.loads(f.read())
 
         result = return_key_value(data, key=key)
@@ -138,7 +124,7 @@ class ConfigFile(object):
 
     def write(self, key, value):
 
-        method_name = "_write_{}".format(self.config_type)
+        method_name = "_write_{}".format(self.type_)
 
         return getattr(self, method_name)(key, value)
 
@@ -154,27 +140,27 @@ class ConfigFile(object):
 
         cfg = sm.configparser.ConfigParser()
 
-        if os.path.exists(self.config_file):
-            cfg.read(self.config_file)
+        if os.path.exists(self.name):
+            cfg.read(self.name)
 
         if section not in cfg:
             cfg[section] = {}
 
         cfg[section][option] = str(value)
 
-        with open(self.config_file, "w") as f:
+        with open(self.name, "w") as f:
             cfg.write(f)
 
     def _write_json(self, key, value):
 
         data = {}
 
-        if os.path.exists(self.config_file):
+        if os.path.exists(self.name):
             data = self.read(flatten=False).data
 
         dpath.util.new(data, key, value, separator=".")
 
-        with open(self.config_file, "w") as f:
+        with open(self.name, "w") as f:
             f.write(json.dumps(data, indent=4))
 
     def write_from_default(self):
@@ -186,7 +172,19 @@ class ConfigFile(object):
             config_data = f.read()
 
         if self.verbose:
-            print("Creating default config file at {}".format(self.config_file))
+            print("Creating default config file at {}".format(self))
 
-        with open(self.config_file, "w") as f:
+        with open(self.name, "w") as f:
             f.write(config_data)
+
+    def __str__(self):
+        return self.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
+
+    def __hash__(self):
+        return hash(self.name)

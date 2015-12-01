@@ -1,4 +1,5 @@
 import dpath
+from .exception import KeyNotFoundException
 
 __config_types__ = [
     "ini",
@@ -15,8 +16,23 @@ def return_key_value(data, key=None):
     else:
         try:
             return dpath.util.get(data, key, separator=".")
-        except (KeyError, ValueError):
-            return None
+        except KeyError:
+            # Note: dpath will raise this error if the
+            # path is valid, but the corresponding value is None
+            # see: https://github.com/akesterson/dpath-python/issues/43
+            # So, we work around this by going up a level and seeing if
+            # the key actually exists. If it does, we return None.
+
+            # To do this efficiently, we just flatten the dictionary
+            # that we get from data and see if key is in it.
+
+            flattened_data = flatten_dict(data)
+            if key in flattened_data:
+                return None
+
+            # If we couldn't find the key in the flattened dictionary,
+            # then we raise an exception indicating that the key wasn't found.
+            raise KeyNotFoundException(key)
 
 
 def flatten_dict(dictionary, separator="."):

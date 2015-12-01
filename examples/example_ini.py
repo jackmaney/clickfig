@@ -4,7 +4,7 @@ sys.path = ['..'] + sys.path
 
 import clickfig
 
-file = clickfig.ConfigFile("./test.ini")
+file = clickfig.Config("./test.ini")
 
 
 @click.group()
