@@ -103,7 +103,7 @@ class Config(object):
     def write(self, key, value, level=None):
 
         if level is None and len(self.config_files) > 1:
-            raise ValueError("Must specify level for more than one config file")
+            level = self.file[0].get("level")
 
         level = level or "__default__"
 
