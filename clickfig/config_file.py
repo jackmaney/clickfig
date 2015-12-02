@@ -33,19 +33,32 @@ class ConfigReadResult(object):
         then this just returns the string representation of the ``data``.
         """
 
+        data_list = None
+
         if isinstance(self.data, dict):
+            data_list = [self.data]
 
-            if self.key is None:
+        if isinstance(self.data, (list, tuple)) and \
+                all([isinstance(x, dict) for x in self.data]):
+            data_list = self.data
 
-                result = "\n".join(["{}={}".format(k, v)
-                                    for k, v in flatten_dict(self.data, self.separator).items()])
-            else:
-
-                result = "\n".join(["{}{}{}={}".format(self.key, self.separator, k, v)
-                                    for k, v in flatten_dict(self.data, self.separator).items()])
-
-        else:
+        if data_list is None:
             result = str(self.data)
+
+        elif self.key is None:
+
+            result = "\n".join(["{}={}".format(k, v)
+                                for d in data_list
+                                for k, v in flatten_dict(d, self.separator).items()
+                                ]
+                               )
+        else:
+
+            result = "\n".join(["{}{}{}={}".format(self.key, self.separator, k, v)
+                                for d in data_list
+                                for k, v in flatten_dict(d, self.separator).items()
+                                ]
+                               )
 
         return result
 

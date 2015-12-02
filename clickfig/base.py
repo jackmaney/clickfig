@@ -1,4 +1,5 @@
 import dpath
+
 from .exception import KeyNotFoundException
 
 __config_types__ = [
@@ -7,9 +8,36 @@ __config_types__ = [
 ]
 
 
+def merge_dicts(*dict_args):
+    """
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in earlier dicts.
+
+    Modified from http://stackoverflow.com/a/26853961/554546
+    :param list[dict] dict_args: An iterable of dictionaries.
+    :return: A dictionary merged as above.
+    :rtype: dict
+    """
+    result = {}
+    for dictionary in reversed(dict_args):
+        result.update(dictionary)
+    return result
+
+
 def return_key_value(data, key=None):
+    """
+
+    :param list[dict]|dict data: The data to be searched.
+    :param str|None key: The key
+    :return:
+    """
     if data is None:
         return None
+
+    if not isinstance(data, (list, tuple)):
+        data = [data]
+
+    data = merge_dicts(*data)
 
     if key is None:
         return data
