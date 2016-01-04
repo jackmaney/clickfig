@@ -1,6 +1,7 @@
-from ._version import __version__
-from .config_file import ConfigFile
-from .config import Config
+from clickfig.config.file import ConfigFile
+from .version import __version__
 from .attach import attach
+from .config import Config
+
 
 

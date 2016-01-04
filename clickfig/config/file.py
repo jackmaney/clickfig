@@ -5,7 +5,7 @@ from collections import OrderedDict
 import dpath.util
 import six.moves as sm
 
-from .base import __config_types__, return_key_value, flatten_dict
+from clickfig.base import __config_types__, return_key_value, flatten_dict
 
 
 class ConfigReadResult(object):
@@ -64,7 +64,8 @@ class ConfigReadResult(object):
 
 
 class ConfigFile(object):
-    def __init__(self, name, type_=None, default_file=None, separator=".", verbose=True):
+    def __init__(self, name, level="__default__",
+                 type_=None, default_file=None, separator=".", verbose=True):
 
         if type_ is None:
             extension = name.split(".")[-1].lower()
@@ -76,10 +77,11 @@ class ConfigFile(object):
 
         if type_ not in __config_types__:
             raise ValueError("Invalid configuration type: {} (must be one of {})".format(
-                type_, ",".join(__config_types__)
+                    type_, ",".join(__config_types__)
             ))
 
         self.name = name
+        self.level = level
         self.type_ = type_
         self.default_file = default_file
         self.separator = separator
@@ -88,9 +90,9 @@ class ConfigFile(object):
         if not self.exists():
             if not os.path.exists(self.default_file):
                 raise FileNotFoundError(
-                    "Configuration file {} not found, and no default config file specified.".format(
-                        self
-                    ))
+                        "Configuration file {} not found, and no default config file specified.".format(
+                                self
+                        ))
             else:
                 self.write_from_default()
 
@@ -112,13 +114,12 @@ class ConfigFile(object):
 
         cfg = sm.configparser.ConfigParser()
         cfg.read(self.name)
-        data = OrderedDict(
-            [(section,
-              OrderedDict([(k, v) for k, v in cfg[section].items()])
-              )
-             for section in cfg.sections()
-             ]
-        ) or None
+        data = OrderedDict([(section,
+                             OrderedDict([(k, v) for k, v in cfg[section].items()])
+                             )
+                            for section in cfg.sections()
+                            ]
+                           ) or None
 
         result = return_key_value(data, key=key)
 
@@ -152,9 +153,9 @@ class ConfigFile(object):
 
         if not key or len(key.split(self.separator)) > 2:
             raise ValueError(
-                "For .ini files, keys must be a top-level section or of the form section{}option".format(
-                    self.separator
-                ))
+                    "For .ini files, keys must be a top-level section or of the form section{}option".format(
+                            self.separator
+                    ))
 
         section, option = key.split(".")
 

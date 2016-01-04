@@ -3,8 +3,8 @@ import os
 import click
 import six
 
-from .config_file import ConfigFile
-from .exception import KeyNotFoundException
+from clickfig.config.file import ConfigFile
+from clickfig.exception import KeyNotFoundException
 
 
 class Config(object):
@@ -25,7 +25,7 @@ class Config(object):
             for f in file:
                 if "name" not in f and "level" not in f:
                     raise ValueError(
-                        "File info {} doesn't contain required keys of 'name' and 'level".format(f)
+                            "File info {} doesn't contain required keys of 'name' and 'level".format(f)
                     )
                 elif f.get("level") == "__default__":
                     raise ValueError("Invalid level name: __default__")
@@ -50,9 +50,8 @@ class Config(object):
                 f.setdefault("name", os.path.basename(f.get("name")))
 
             if not f.get("dir") and self.app_name is None:
-                raise ValueError(
-                    "Cannot determine full path to config file {}. "
-                    "Please be more specific or specify app_name".format(f.get("name")))
+                raise ValueError("Cannot determine full path to config file {}. "
+                                 "Please be more specific or specify app_name".format(f.get("name")))
 
             if not f.get("dir"):
                 f_dir = click.get_app_dir(self.app_name, roaming=dir_options.get("roaming", True),
@@ -62,7 +61,8 @@ class Config(object):
             f.setdefault("name", os.path.join(f.get("dir"), f.get("name")))
 
         self.config_files = [
-            ConfigFile(f.get("name"), type_=f.get("type"), default_file=f.get("default"),
+            ConfigFile(f.get("name"), level=f.get("level", "__default__"),
+                       type_=f.get("type"), default_file=f.get("default"),
                        separator=self.separator, verbose=self.verbose)
             for f in self.file]
 
