@@ -76,17 +76,7 @@ class Config(object):
 
     def file_by_level(self, level):
 
-        f = [x for x in self.file if x.get("level") == level][0]
-        idx = self.file_names.index(f.get("name"))
-        return self.config_files[idx]
-
-    def level_by_file(self, file):
-
-        if isinstance(file, ConfigFile):
-            f = [x for x in self.file if x.get("name") == file.name]
-            return f[0].get("level")
-        elif isinstance(file, dict):
-            return file.get("level")
+        return [x for x in self.config_files if x.level == level][0]
 
     def read(self, key=None, flatten=True):
         if key is None:
@@ -103,10 +93,21 @@ class Config(object):
     def write(self, key, value, level=None):
 
         if level is None and len(self.config_files) > 1:
-            level = self.file[0].get("level")
+            level = self.config_files[0].level
 
         level = level or "__default__"
 
         config_file = self.file_by_level(level)
 
         config_file.write(key, value)
+
+    def unset(self, key, level=None):
+        if level is None and len(self.config_files) > 1:
+            level = self.config_files[0].level
+
+        level = level or "__default__"
+
+        config_file = self.file_by_level(level)
+
+        config_file.unset(key)
+

@@ -14,14 +14,12 @@ def attach(group, config, command_name="config"):
     if not isinstance(group, click.Group):
         raise ValueError("group must be a click.Group object (not {})".format(type(group)))
 
-    def config_cmd(key, value, level=None):
+    def config_cmd(key, value, unset, level=None):
 
         if level is None:
             obj = config
         else:
             obj = config.file_by_level(level)
-
-
 
         if value is None:
 
@@ -42,3 +40,4 @@ def attach(group, config, command_name="config"):
     config_cmd = group.command(command_name)(
         click.argument("key", required=False)(config_cmd)
     )
+    config_cmd = click.option("--unset", is_flag=True, default=False)

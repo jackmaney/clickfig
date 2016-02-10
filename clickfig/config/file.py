@@ -1,5 +1,7 @@
 import json
 import os
+import shutil
+import tempfile
 from collections import OrderedDict
 
 import dpath.util
@@ -100,6 +102,24 @@ class ConfigFile(object):
 
         return os.path.exists(self.name)
 
+    def unset(self, key):
+
+        config_data = flatten_dict(self.read().data)
+
+        del config_data[key]
+
+        with tempfile.NamedTemporaryFile() as temp:
+            tmp_config = ConfigFile(name=temp.name, level=self.level,
+                                    type_=self.type_, default_file=self.default_file,
+                                    separator=self.separator, verbose=self.verbose)
+
+            key = [x for x in config_data.keys()]
+            value = [config_data[x] for x in key]
+
+            tmp_config.write(key=key, value=value, read_existing_data=False)
+
+            shutil.copyfile(temp.name, self.name)
+
     def read(self, key=None, flatten=True):
 
         method_name = "_read_{}".format(self.type_)
@@ -143,43 +163,57 @@ class ConfigFile(object):
 
         return result
 
-    def write(self, key, value):
+    def write(self, key, value, read_existing_data=True):
+
+        if not isinstance(key, (list, tuple)):
+            key = [key]
+
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+
+        if len(value) != len(key):
+            raise ValueError("Number of keys and values do not match ({} vs {})".format(
+                    len(key), len(value)
+            ))
 
         method_name = "_write_{}".format(self.type_)
 
-        return getattr(self, method_name)(key, value)
+        return getattr(self, method_name)(key, value, read_existing_data=read_existing_data)
 
-    def _write_ini(self, key, value):
-
-        if not key or len(key.split(self.separator)) > 2:
-            raise ValueError(
-                    "For .ini files, keys must be a top-level section or of the form section{}option".format(
-                            self.separator
-                    ))
-
-        section, option = key.split(".")
+    def _write_ini(self, key, value, read_existing_data=True):
 
         cfg = sm.configparser.ConfigParser()
 
-        if os.path.exists(self.name):
+        if read_existing_data and os.path.exists(self.name):
             cfg.read(self.name)
 
-        if section not in cfg:
-            cfg[section] = {}
+        for k, v in zip(key, value):
 
-        cfg[section][option] = str(value)
+            if not k or len(k.split(self.separator)) > 2:
+                raise ValueError(
+                        "For .ini files, keys must be a top-level section or of the form section{}option".format(
+                                self.separator
+                        ))
+
+            section, option = k.split(".")
+
+            if section not in cfg:
+                cfg[section] = {}
+
+            cfg[section][option] = str(v)
 
         with open(self.name, "w") as f:
             cfg.write(f)
 
-    def _write_json(self, key, value):
+    def _write_json(self, key, value, read_existing_data=True):
 
         data = {}
 
-        if os.path.exists(self.name):
+        if read_existing_data and os.path.exists(self.name):
             data = self.read(flatten=False).data
 
-        dpath.util.new(data, key, value, separator=".")
+        for k, v in zip(key, value):
+            dpath.util.new(data, k, v, separator=".")
 
         with open(self.name, "w") as f:
             f.write(json.dumps(data, indent=4))

@@ -1,4 +1,5 @@
 import dpath
+from collections import OrderedDict
 
 from .exception import KeyNotFoundException
 
@@ -66,7 +67,7 @@ def return_key_value(data, key=None):
 def flatten_dict(dictionary, separator="."):
     result = {}
     for key, value in dictionary.items():
-        if not isinstance(value, dict):
+        if not isinstance(value, (dict, OrderedDict)):
             result[key] = value
         else:
             result.update(flatten_dict({"{}{}{}".format(key, separator, x): y
