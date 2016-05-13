@@ -6,6 +6,10 @@ from collections import OrderedDict
 
 import dpath.util
 import six.moves as sm
+from six import PY2
+
+if PY2:
+    FileNotFoundError = IOError
 
 from clickfig.base import __config_types__, return_key_value, flatten_dict
 

@@ -23,11 +23,17 @@ def attach(group, config, command_name="config"):
 
         if value is None:
 
-            read_results = obj.read(key=key)
-            if not isinstance(read_results, list):
-                read_results = [read_results]
+            if unset and key is not None:
+                obj.unset(key)
+            elif unset:
+                raise ValueError("Cannot unset without a key")
+            else:
 
-            print("\n".join([str(x) for x in read_results]))
+                read_results = obj.read(key=key)
+                if not isinstance(read_results, list):
+                    read_results = [read_results]
+
+                print("\n".join([str(x) for x in read_results]))
         else:
             obj.write(key, value)
 
@@ -36,8 +42,10 @@ def attach(group, config, command_name="config"):
             config_cmd = click.option("--{}".format(lvl), "level",
                                       flag_value=lvl)(config_cmd)
 
-    config_cmd = click.argument("value", required=False)(config_cmd)
     config_cmd = group.command(command_name)(
         click.argument("key", required=False)(config_cmd)
     )
-    config_cmd = click.option("--unset", is_flag=True, default=False)
+    config_cmd = click.argument("value", required=False)(config_cmd)
+    config_cmd = click.option("--unset", is_flag=True, default=False)(config_cmd)
+
+    return config_cmd
