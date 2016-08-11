@@ -3,8 +3,15 @@ import os
 import click
 import six
 
-from clickfig.config.file import ConfigFile
 from clickfig.exception import KeyNotFoundException
+
+from ..base import __config_types__
+from .file import INIConfigFile, JSONConfigFile
+
+__config_type_map__ = {
+    "ini": INIConfigFile,
+    "json": JSONConfigFile
+}
 
 
 class Config(object):
@@ -25,10 +32,12 @@ class Config(object):
             for f in file:
                 if "name" not in f and "level" not in f:
                     raise ValueError(
-                            "File info {} doesn't contain required keys of 'name' and 'level".format(f)
+                        "File info {} doesn't contain required keys of 'name' and 'level".format(f)
                     )
                 elif f.get("level") == "__default__":
                     raise ValueError("Invalid level name: __default__")
+
+                f.setdefault("level", "__default__")
 
             self.file = file
 
@@ -60,11 +69,36 @@ class Config(object):
 
             f.setdefault("name", os.path.join(f.get("dir"), f.get("name")))
 
-        self.config_files = [
-            ConfigFile(f.get("name"), level=f.get("level", "__default__"),
-                       type_=f.get("type"), default_file=f.get("default"),
-                       separator=self.separator, verbose=self.verbose)
-            for f in self.file]
+        self.config_files = []
+
+        for f in self.file:
+
+            if f.get("type"):
+
+                type_ = str(f.get("type")).lower()
+
+                if type_ in __config_types__:
+                    cls = __config_type_map__[type_]
+                else:
+                    raise ValueError(
+                        "Invalid configuration value for type_: {} (must be one of {})".format(f.get("type"), ",".join(
+                            [str(x) for x in __config_types__])))
+
+            else:
+
+                extension = f.get("name").split(".")[-1].lower()
+
+                if extension in __config_types__:
+
+                    cls = __config_type_map__[extension]
+
+                else:
+
+                    raise ValueError("Unable to determine the type of config file for {}".format(f.get("name")))
+
+            self.config_files.append(cls(name=f.get("name"), level=f.get("level"),
+                                         default_file=f.get("default"),
+                                         separator=self.separator, verbose=self.verbose))
 
     @property
     def levels(self):
@@ -76,7 +110,12 @@ class Config(object):
 
     def file_by_level(self, level):
 
-        return [x for x in self.config_files if x.level == level][0]
+        files = [x for x in self.config_files if x.level == level]
+
+        if not files:
+            raise ValueError("No file found for level {}".format(level))
+
+        return files[0]
 
     def read(self, key=None, flatten=True):
         if key is None:
@@ -110,4 +149,3 @@ class Config(object):
         config_file = self.file_by_level(level)
 
         config_file.unset(key)
-

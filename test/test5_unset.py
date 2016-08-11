@@ -11,7 +11,7 @@ import os
 cfg_ini = clickfig.Config([{"name": "./default_test_unset.ini", "default": "./ini/default.ini"}],
                           verbose=False)
 cfg_json = clickfig.Config([{"name": "./default_test_unset.json", "default": "./json/default.json"}],
-                           verbose=False)
+                           verbose=True)
 
 
 class TestUnset(unittest.TestCase):

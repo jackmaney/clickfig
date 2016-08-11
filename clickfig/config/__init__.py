@@ -1,2 +1,2 @@
 from .base import Config
-from .file import ConfigFile
+from . import file

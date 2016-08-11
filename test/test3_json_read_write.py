@@ -6,7 +6,7 @@ import unittest
 import clickfig
 from dict_equal import dict_equal
 
-cfg = clickfig.ConfigFile("./json/test.json", type_="json")
+cfg = clickfig.config.file.JSONConfigFile("./json/test.json")
 
 
 class TestJSONReadWrite(unittest.TestCase):
