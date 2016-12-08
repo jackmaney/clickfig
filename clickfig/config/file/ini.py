@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from collections import OrderedDict
 
 import os
@@ -18,7 +19,7 @@ class INIConfigFile(BaseConfigFile):
         cfg = sm.configparser.ConfigParser()
         cfg.read(self.name)
         data = OrderedDict([(section,
-                             OrderedDict([(k, v) for k, v in cfg[section].items()])
+                             OrderedDict([(k, v) for k, v in cfg.items(section)])
                              )
                             for section in cfg.sections()
                             ]
@@ -52,10 +53,10 @@ class INIConfigFile(BaseConfigFile):
 
             section, option = k.split(".")
 
-            if section not in cfg:
-                cfg[section] = {}
+            if not cfg.has_section(section=section):
+                cfg.add_section(section)
 
-            cfg[section][option] = str(v)
+            cfg.set(section, option, str(v))
 
         with open(self.name, "w") as f:
             cfg.write(f)
