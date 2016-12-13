@@ -175,3 +175,6 @@ crashlytics-build.properties
 ### Pyenv
 
 .python-version
+
+### Fiddling
+fiddl*.py

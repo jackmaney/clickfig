@@ -13,6 +13,6 @@ def main():
 
 
 clickfig.attach(main, file)
-
+main()
 if __name__ == "__main__":
     main()
