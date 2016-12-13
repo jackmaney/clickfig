@@ -1,3 +1,7 @@
+"""
+This example is a bit more complex, and simulates a CLI app that might be used
+to contact and run jobs on a server. The config options are used in multiple commands.
+"""
 from __future__ import absolute_import, print_function
 
 import sys
@@ -7,11 +11,11 @@ from time import sleep
 import click
 from six.moves import urllib
 
-sys.path = ['..'] + sys.path
+sys.path = ['../..'] + sys.path
 
 import clickfig
 
-cfg = clickfig.Config("./example_readme.ini")
+cfg = clickfig.Config("./server.ini")
 
 
 def get_url(username=None, password=None):
@@ -54,9 +58,10 @@ def get_url(username=None, password=None):
 @click.option("--password", "-p", type=str, default=None, help="Password (overrides the password in the config file)")
 @click.pass_context
 def main(context, username, password):
-    """A fake utility for communicating with a server. Look at ./example_readme.ini"""
+    """A fake utility for communicating with a server. Look at ./server.ini"""
     context.obj["username"] = username
     context.obj["password"] = password
+
 
 @main.command()
 @click.pass_context
@@ -77,6 +82,7 @@ def ping(context):
         sleep(duration)
         print("64 bytes from 127.0.0.1: icmp_seq=4 ttl=55 time={0:.3f} ms".format(1888 * duration))
     print("Done!")
+
 
 @main.command()
 @click.option("--file", "-f", type=str, help="The file to upload")

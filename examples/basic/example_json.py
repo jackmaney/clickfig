@@ -1,10 +1,10 @@
 import sys
 import click
-sys.path = ['..'] + sys.path
+sys.path = ['../..'] + sys.path
 
 import clickfig
 
-file = clickfig.Config("./test.ini")
+cfg = clickfig.Config("./test.json")
 
 
 @click.group()
@@ -12,7 +12,7 @@ def main():
     pass
 
 
-clickfig.attach(main, file)
-
+clickfig.attach(main, cfg)
+main()
 if __name__ == "__main__":
     main()
