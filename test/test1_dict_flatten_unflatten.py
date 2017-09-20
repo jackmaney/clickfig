@@ -5,6 +5,7 @@ sys.path = ['..', '.'] + sys.path
 
 import unittest
 from clickfig.base import flatten_dict, unflatten_dict
+# noinspection PyUnresolvedReferences
 from dict_equal import dict_equal
 
 dict_flat = {

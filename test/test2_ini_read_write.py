@@ -5,6 +5,7 @@ sys.path = ['..', '.'] + sys.path
 
 import unittest
 import clickfig
+# noinspection PyUnresolvedReferences
 from dict_equal import dict_equal
 
 cfg = clickfig.config.file.INIConfigFile("./ini/test.ini")
