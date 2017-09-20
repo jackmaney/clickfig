@@ -6,11 +6,12 @@ import six
 from clickfig.exception import KeyNotFoundException
 
 from ..base import __config_types__
-from .file import INIConfigFile, JSONConfigFile
+from .file import INIConfigFile, JSONConfigFile, PythonConfigFile
 
 __config_type_map__ = {
     "ini": INIConfigFile,
-    "json": JSONConfigFile
+    "json": JSONConfigFile,
+    "python": PythonConfigFile
 }
 
 
@@ -87,6 +88,9 @@ class Config(object):
             else:
 
                 extension = f.get("name").split(".")[-1].lower()
+
+                if extension == "py":
+                    extension = "python"
 
                 if extension in __config_types__:
 

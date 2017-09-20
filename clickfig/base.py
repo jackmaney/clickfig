@@ -5,7 +5,8 @@ from .exception import KeyNotFoundException
 
 __config_types__ = [
     "ini",
-    "json"
+    "json",
+    "python"
 ]
 
 

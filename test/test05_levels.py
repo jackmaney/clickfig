@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 import sys
 
 sys.path = ['..', '.'] + sys.path
@@ -18,6 +19,13 @@ cfg_json = clickfig.Config(
     [
         {"level": "local", "name": "./json/test.json"},
         {"level": "global", "name": "./json/test_global.json"}
+    ]
+)
+
+cfg_python = clickfig.Config(
+    [
+        {"level": "local", "name": "./py/_test.py"},
+        {"level": "global", "name": "./py/_test_global.py"}
     ]
 )
 
@@ -91,3 +99,19 @@ class TestLevels(unittest.TestCase):
         self.assertEqual(cfg_json.config_files[1].read(key="x").data, "yz")
         with self.assertRaises(exception.KeyNotFoundException):
             cfg_json.config_files[0].read(key="x")
+
+    def test_py_read(self):
+        self.assertEqual(cfg_python.read(key="x").data, 42)
+        self.assertEqual(cfg_python.read(key="foo").data, "bar")
+        self.assertEqual(cfg_python.config_files[1].read(key="x").data, -3)
+
+        for i in range(10):
+            self.assertEqual(cfg_python.read("square").data(i), i**2)
+
+        self.assertTrue(cfg_python.read(key="q").data is None)
+
+        with self.assertRaises(exception.KeyNotFoundException):
+            cfg_python.config_files[0].read(key="q")
+
+        with self.assertRaises(exception.KeyNotFoundException):
+            cfg_python.config_files[1].read(key="square")
