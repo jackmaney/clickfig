@@ -1,5 +1,12 @@
-
 def dict_equal(first, second):
+    """
+    This is a utility function used in testing to determine if two dictionaries are, in a nested sense, equal (ie they have the same keys and values at all levels).
+
+    :param dict first: The first dictionary to compare.
+    :param dict second: The second dictionary to compare.
+    :return: Whether or not the dictionaries are (recursively) equal.
+    :rtype: bool
+    """
     if not set(first.keys()) == set(second.keys()):
         return False
 
