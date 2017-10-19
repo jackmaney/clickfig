@@ -3,7 +3,7 @@ Clickfig: Simple Click-Based App Configuration
 
 `Click <http://click.pocoo.org/>`_ is a fantastic library for building CLI applications with composable commands, arguments, and options. However, sufficiently large applications can require a large amount of configuration options, making command line flags unwieldy. The common workaround to this is a configuration file. However, ``click`` doesn't have any built-in mechanisms for handling configuration files.
 
-Hence ``clickfig``. Clickfig is a package that lets you simply and easily attach a configuration file (in ini or json format) to your click app. The configuration file is attached to a `group <http://click.pocoo.org/6/commands/>`_ as a ``command``, and allows for a simple CLI (somewhat inspired by ``git config``) for querying, updating, and deleting items in the configuration file.
+Hence ``clickfig``. Clickfig is a package that lets you simply and easily attach a configuration file (in ini, json or a Python file (configuration settings in Python files are read-only)) to your click app. The configuration file is attached to a `group <http://click.pocoo.org/6/commands/>`_ as a ``command``, and allows for a simple CLI (somewhat inspired by ``git config``) for querying, updating, and deleting items in the configuration file.
 
 Installation
 ------------
