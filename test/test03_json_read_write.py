@@ -14,9 +14,11 @@ cfg = clickfig.config.file.JSONConfigFile("./json/test.json")
 
 class TestJSONReadWrite(unittest.TestCase):
 
+    @classmethod
     def setUpClass(cls):
         shutil.copyfile("./json/test.json", "./json/test.json.bak")
 
+    @classmethod
     def tearDownClass(cls):
         shutil.move("./json/test.json.bak", "./json/test.json")
 
