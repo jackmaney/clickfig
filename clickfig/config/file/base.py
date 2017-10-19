@@ -120,6 +120,13 @@ class BaseConfigFile(object):
 
     @staticmethod
     def _validate_write_args(key, value):
+        """
+        Ensures that there are an equal number of keys and values for writing.
+        :param str|list[str] key: A string or list of strings representing keys.
+        :param value: A single item or list of items representing corresponding values.
+        :return: Returns the transformed keys and values (each made into a list of length 1 if they weren't already lists).
+        :rtype: tuple
+        """
 
         if not isinstance(key, (list, tuple)):
             key = [key]
@@ -135,7 +142,14 @@ class BaseConfigFile(object):
         return key, value
 
     @abstractmethod
-    def write(self, key, value):
+    def write(self, key, value, read_existing_data=True):
+        """
+        Writes key(s) and corresponding value(s).
+
+        :param str|list[str] key: The key(s) to write.
+        :param List value: A list of corresponding values. Note that each value will be stringified when written.
+        :param bool read_existing_data: If enabled (default), existing data is read in, the ``value``(s) are (re)assigned to the ``key``(s), and then the transformed data is written out. Otherwise, the file contents will be overwritten by the given ``key``(s) and ``value``(s). Basically, this determines whether or not we're doing an ``UPSERT`` or ``INSERT OVERWRITE``.
+        """
         pass
 
     def write_from_default(self):

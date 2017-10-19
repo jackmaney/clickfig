@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import shutil
 import sys
 
 sys.path = ['..', '.'] + sys.path
@@ -31,6 +32,17 @@ cfg_python = clickfig.Config(
 
 
 class TestLevels(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        shutil.copyfile("./json/test.json", "./json/test.json.bak")
+        shutil.copyfile("./json/test_global.json", "./json/test_global.json.bak")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.move("./json/test.json.bak", "./json/test.json")
+        shutil.move("./json/test_global.json.bak", "./json/test_global.json")
+
     def test_ini_read(self):
         self.assertEqual(cfg_ini.read(key="foo.bar").data, "baz")
         self.assertEqual(cfg_ini.config_files[1].read(key="foo.bar").data, "blarg")

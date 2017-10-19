@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import shutil
 import sys
 
 sys.path = ['..', '.'] + sys.path
@@ -12,6 +13,13 @@ cfg = clickfig.config.file.JSONConfigFile("./json/test.json")
 
 
 class TestJSONReadWrite(unittest.TestCase):
+
+    def setUpClass(cls):
+        shutil.copyfile("./json/test.json", "./json/test.json.bak")
+
+    def tearDownClass(cls):
+        shutil.move("./json/test.json.bak", "./json/test.json")
+
     def test_read(self):
         expected = {
             "bar.meh.a": 1,
